@@ -36,11 +36,11 @@ function Fail([string]$Text) { Write-Host "`n$Text" -ForegroundColor Red; exit 1
 Step 'Checking Python'
 $PyExe = $null
 $PyArgs = @()
-if (Get-Command py.exe -ErrorAction SilentlyContinue) {
+$python = Get-Command python.exe -ErrorAction SilentlyContinue
+if ($python -and $python.Source -notlike '*\WindowsApps\*') {
+    $PyExe = $python.Source
+} elseif (Get-Command py.exe -ErrorAction SilentlyContinue) {
     $PyExe = 'py'; $PyArgs = @('-3')
-} else {
-    $python = Get-Command python.exe -ErrorAction SilentlyContinue
-    if ($python -and $python.Source -notlike '*\WindowsApps\*') { $PyExe = $python.Source }
 }
 if (-not $PyExe) {
     Fail @'
