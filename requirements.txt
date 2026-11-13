@@ -1,0 +1,7 @@
+# Minimum versions convert-md is tested with. Kept in step with pyproject.toml.
+# Normally you don't need this file: install.ps1 / pip install installs these for you.
+markitdown[docx,pdf,pptx,xlsx,xls,outlook]>=0.1.7,<0.2
+pypandoc_binary>=1.17
+openpyxl>=3.1.5
+beautifulsoup4>=4.12
+pywin32>=306; sys_platform == 'win32'

@@ -1,0 +1,70 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} on Windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: python -m pip install --disable-pip-version-check ".[test]"
+      - name: Run tests
+        env:
+          CONVERT_MD_REGISTRY_TEST: "1"   # also installs and removes the menus in the runner's registry
+        run: python -m pytest -v
+      - name: Installation check
+        run: python -m convert_md doctor
+
+  install-script:
+    name: install.ps1 / uninstall.ps1
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        shell: powershell
+        run: .\install.ps1 -NoHotkey
+      - name: Menus are in the registry
+        shell: powershell
+        run: |
+          $key = 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\ConvertMd\shell\1_docx\command'
+          if (-not (Test-Path $key)) { throw 'Convert to menu missing' }
+          if (-not (Test-Path 'HKCU:\Software\Classes\SystemFileAssociations\.pdf\shell\ConvertMdToMarkdown\command')) { throw 'Convert to Markdown menu missing' }
+          (Get-ItemProperty $key).'(default)'
+      - name: Uninstall
+        shell: powershell
+        run: .\uninstall.ps1 -RemovePackage -RemoveData
+      - name: Menus are gone
+        shell: powershell
+        run: |
+          if (Test-Path 'HKCU:\Software\Classes\SystemFileAssociations\.md\shell\ConvertMd') { throw 'menu still present' }
+
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check --strict dist/*

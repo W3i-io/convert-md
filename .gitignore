@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+
+# Generated per machine; never commit
+install.reg
+uninstall.reg
+convert-md.ini
+
+# Test outputs next to the sample
+samples/*
+!samples/Example.md
