@@ -10,6 +10,7 @@ convert_md.py sitting next to the document can't be run in place of convert-md.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -142,6 +143,21 @@ def autohotkey_available() -> bool:
         except OSError:
             continue
     return False
+
+
+def install_autohotkey() -> tuple[bool, str]:
+    """Install AutoHotkey v2 with winget. Returns (installed, problem)."""
+    winget = shutil.which("winget")
+    if not winget:
+        return False, "winget is not available"
+    result = subprocess.run(
+        [winget, "install", "--id", "AutoHotkey.AutoHotkey", "-e", "--silent",
+         "--accept-source-agreements", "--accept-package-agreements", "--disable-interactivity"],
+        capture_output=True, text=True, check=False)
+    if autohotkey_available():
+        return True, ""
+    lines = [l.strip() for l in (result.stdout + result.stderr).splitlines() if l.strip()]
+    return False, lines[-1] if lines else f"winget exited with code {result.returncode}"
 
 
 def hotkey_config(pythonw: str, hotkey: str) -> str:

@@ -5,9 +5,9 @@
 .DESCRIPTION
     1. Checks for Python 3.11 or newer (python.org build).
     2. Installs convert-md and its libraries with pip.
-    3. Offers to install AutoHotkey v2 (needed only for the Ctrl+Alt+M hotkey).
-    4. Adds the right-click menus and the hotkey (convert-md setup).
-    5. Runs a test conversion and an installation check.
+    3. Adds the right-click menus and the Ctrl+Alt+M hotkey (convert-md setup), installing
+       AutoHotkey v2 with winget first if it's missing.
+    4. Runs a test conversion and an installation check.
     No administrator rights are needed. Run it again at any time to update or repair.
 
 .EXAMPLE
@@ -20,7 +20,7 @@
 param(
     [switch]$NoHotkey,
     [switch]$NoMenus,
-    [switch]$Yes,                  # install AutoHotkey without asking, if it's missing
+    [switch]$Yes,                  # no longer needed: AutoHotkey is installed without asking (kept for compatibility)
     [string]$Hotkey = '^!m',       # AutoHotkey notation: ^ Ctrl, ! Alt, + Shift, # Win
     [switch]$SkipTest
 )
@@ -64,40 +64,16 @@ Step 'Installing convert-md and its libraries (this can take a minute)'
 & $PyExe @PyArgs -m pip install --upgrade --disable-pip-version-check --quiet $PSScriptRoot
 if ($LASTEXITCODE -ne 0) { Fail 'pip could not install convert-md (see the messages above).' }
 
-# ---------------------------------------------------------------- 3. AutoHotkey
-if (-not $NoHotkey) {
-    $haveAhk = (Test-Path 'Registry::HKEY_CURRENT_USER\Software\Classes\.ahk') -or
-               (Test-Path 'Registry::HKEY_LOCAL_MACHINE\Software\Classes\.ahk')
-    if (-not $haveAhk) {
-        Step 'AutoHotkey'
-        if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
-            Write-Warning 'AutoHotkey v2 is not installed and winget is unavailable; skipping the hotkey.'
-            $NoHotkey = $true
-        } else {
-            $answer = if ($Yes) { 'y' } else {
-                Read-Host 'The Ctrl+Alt+M hotkey needs AutoHotkey v2. Install it now with winget? [Y/n]' }
-            if ($answer -eq '' -or $answer -match '^[Yy]') {
-                winget install --id AutoHotkey.AutoHotkey -e --accept-source-agreements --accept-package-agreements
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Warning 'AutoHotkey did not install; continuing without the hotkey.'
-                    $NoHotkey = $true
-                }
-            } else {
-                $NoHotkey = $true
-            }
-        }
-    }
-}
-
-# ---------------------------------------------------------------- 4. Menus and hotkey
+# ---------------------------------------------------------------- 3. Menus and hotkey
 Step 'Adding the right-click menus and hotkey'
 $setupArgs = @('-P', '-m', 'convert_md', 'setup', '--hotkey', $Hotkey)
 if ($NoHotkey) { $setupArgs += '--no-hotkey' }
 if ($NoMenus)  { $setupArgs += '--no-menus' }
 & $PyExe @PyArgs @setupArgs
-if ($LASTEXITCODE -eq 1) { Fail 'Setup failed (see the messages above).' }   # 2 = hotkey skipped
+if ($LASTEXITCODE -eq 1) { Fail 'Setup failed (see the messages above).' }
+if ($LASTEXITCODE -eq 2) { $NoHotkey = $true }   # AutoHotkey couldn't be installed; menus are in place
 
-# ---------------------------------------------------------------- 5. Test
+# ---------------------------------------------------------------- 4. Test
 if (-not $SkipTest) {
     Step 'Testing conversions'
     $tmp = Join-Path $env:TEMP ('convert-md-test-' + [guid]::NewGuid().ToString('N').Substring(0, 8))

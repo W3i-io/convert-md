@@ -92,13 +92,31 @@ def convert_main(argv: list[str]) -> int:
             print(f"created  {p}")
         for e in errors:
             print(f"error    {e}", file=sys.stderr)
+        _setup_reminder()
     return 1 if errors else 0
+
+
+def _setup_reminder() -> None:
+    """After a pip install the menus and hotkey don't exist until setup runs; say so."""
+    if not _is_windows():
+        return
+    try:
+        from convert_md import windows
+        if windows.menu_command() is None:
+            print("tip      add the right-click menus and Ctrl+Alt+M hotkey with: convert-md setup",
+                  file=sys.stderr)
+    except Exception:
+        pass
 
 
 # --------------------------------------------------------------------------- commands
 
+def _is_windows() -> bool:
+    return sys.platform == "win32"
+
+
 def _require_windows(what: str) -> bool:
-    if sys.platform != "win32":
+    if not _is_windows():
         print(f"{what} is only available on Windows. Conversions work everywhere: convert-md --to ...")
         return False
     return True
@@ -115,14 +133,18 @@ def cmd_setup(args: argparse.Namespace) -> int:
         windows.install_menus(pythonw)
         print("  right-click menus   installed (under 'Show more options' on Windows 11)")
     if not args.no_hotkey:
-        if windows.autohotkey_available():
-            script = windows.install_hotkey(pythonw, args.hotkey)
-            print(f"  hotkey              installed and started ({script})")
-        else:
-            print("  hotkey              skipped: AutoHotkey v2 is not installed")
-            print("                      install it with: winget install AutoHotkey.AutoHotkey -e")
-            print("                      then run: convert-md setup")
-            status = 2
+        if not windows.autohotkey_available():
+            print("  AutoHotkey v2       not found; installing it with winget (needed for the hotkey)...")
+            ok, problem = windows.install_autohotkey()
+            if ok:
+                print("  AutoHotkey v2       installed")
+            else:
+                print(f"  hotkey              skipped: AutoHotkey v2 could not be installed ({problem})")
+                print("                      install it with: winget install AutoHotkey.AutoHotkey -e")
+                print("                      then run: convert-md setup")
+                return 2
+        script = windows.install_hotkey(pythonw, args.hotkey)
+        print(f"  hotkey              installed and started ({script})")
     return status
 
 
@@ -219,7 +241,8 @@ def command_main(argv: list[str]) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("setup", help="add the right-click menus and the hotkey")
     p.add_argument("--no-menus", action="store_true", help="skip the right-click menus")
-    p.add_argument("--no-hotkey", action="store_true", help="skip the AutoHotkey hotkey")
+    p.add_argument("--no-hotkey", action="store_true",
+                   help="skip the Ctrl+Alt+M hotkey (otherwise AutoHotkey v2 is installed if missing)")
     p.add_argument("--hotkey", default="^!m",
                    help="AutoHotkey key combination, default ^!m (Ctrl+Alt+M)")
     p.set_defaults(func=cmd_setup)

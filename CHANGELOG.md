@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-16
+
+### Changed
+- The Ctrl+Alt+M hotkey is now installed by default with every install method. `convert-md setup`
+  installs AutoHotkey v2 with winget when it's missing, instead of skipping the hotkey.
+  Use `--no-hotkey` (or `install.ps1 -NoHotkey`) to leave it out.
+- `install.ps1` no longer asks before installing AutoHotkey. Its `-Yes` switch is no longer needed and
+  is ignored.
+
+### Added
+- After a pip install, `convert-md` reminds you to run `convert-md setup` until the menus and hotkey
+  are in place.
+
 ## [1.0.0] - 2026-11-13
 
 First public release.
@@ -38,5 +51,6 @@ removes the old md-convert menus, Startup shortcut and running hotkey and instal
 place. The old files are no longer used and can be deleted, as can `%LOCALAPPDATA%\MdConvert`
 (it only holds the old log).
 
-[Unreleased]: https://github.com/W3i-io/convert-md/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/W3i-io/convert-md/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/W3i-io/convert-md/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/W3i-io/convert-md/releases/tag/v1.0.0

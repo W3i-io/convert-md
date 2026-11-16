@@ -25,7 +25,7 @@ built on [Pandoc](https://pandoc.org) and Microsoft [MarkItDown](https://github.
 
 - Output is saved next to the original. Nothing is overwritten: a repeat run writes `Report (1).docx`.
 - A small popup confirms what was created and lists any problems.
-- Optional **Ctrl+Alt+M** hotkey: select files in File Explorer and press it to get the same menu at the
+- **Ctrl+Alt+M** hotkey: select files in File Explorer and press it to get the same menu at the
   mouse pointer. Mixed selections work: Markdown files go out, everything else comes in.
 
 | Ctrl+Alt+M on a Markdown file | Ctrl+Alt+M on any other file |
@@ -45,16 +45,19 @@ Needs Windows 10 or 11 and Python 3.11 or newer from python.org
    powershell -ExecutionPolicy Bypass -File .\install.ps1
    ```
 
-The installer sets everything up for your Windows account only (no administrator rights), offers to
-install [AutoHotkey v2](https://www.autohotkey.com) for the hotkey, and runs a test conversion.
-Use `-NoHotkey` for the right-click menus only.
+The installer sets up the right-click menus and the Ctrl+Alt+M hotkey for your Windows account,
+installs [AutoHotkey v2](https://www.autohotkey.com) for the hotkey if you don't have it, and runs a
+test conversion. Use `-NoHotkey` for the right-click menus only.
 
-Prefer pip? Once it's published to PyPI:
+Prefer pip? Install from [PyPI](https://pypi.org/project/convert-md/), then run setup, which adds the
+menus and the hotkey (installing AutoHotkey if needed):
 
 ```powershell
 py -m pip install convert-md
 py -m convert_md setup
 ```
+
+pip can't run setup by itself, so `convert-md` reminds you until you have.
 
 Updating, moving, uninstalling and troubleshooting: see [DEPLOY.md](https://github.com/W3i-io/convert-md/blob/main/DEPLOY.md).
 
@@ -111,7 +114,7 @@ that isn't on your PATH.
 | Protected files | Password-protected or rights-managed documents can't be converted. |
 | Legacy formats | Old `.doc` and `.ppt` files aren't supported; save them as `.docx` / `.pptx` first. |
 | Several files at once | Windows starts one conversion per file from the right-click menu, so each shows its own popup. |
-| Hotkey | Needs AutoHotkey v2. Works in File Explorer windows only: not on the desktop, in Open/Save dialogs or in other file managers. |
+| Hotkey | Uses AutoHotkey v2, which setup installs with winget; without winget, install AutoHotkey yourself. Works in File Explorer windows only: not on the desktop, in Open/Save dialogs or in other file managers. |
 | Output folder | Files are written next to the original, so read-only folders fail. |
 | Remote images | Images linked by URL in Markdown are downloaded by Pandoc when embedded. |
 

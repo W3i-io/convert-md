@@ -48,8 +48,7 @@ The download folder isn't used after installation, so you can move or delete it.
 
    | Option | Effect |
    |---|---|
-   | `-NoHotkey` | Right-click menus only; no AutoHotkey |
-   | `-Yes` | Install AutoHotkey without asking if it's missing |
+   | `-NoHotkey` | Right-click menus only; no hotkey and no AutoHotkey |
    | `-Hotkey '^!k'` | Use a different key (AutoHotkey notation: `^` Ctrl, `!` Alt, `+` Shift, `#` Win) |
    | `-SkipTest` | Skip the test conversions |
 
@@ -60,7 +59,9 @@ py -m pip install convert-md
 py -m convert_md setup
 ```
 
-For the hotkey, install AutoHotkey first (`winget install AutoHotkey.AutoHotkey -e`), then run setup.
+Setup adds the right-click menus and the Ctrl+Alt+M hotkey. If AutoHotkey v2 is missing, it installs it
+with winget first; use `setup --no-hotkey` to skip the hotkey. pip can't run setup by itself, so until you
+run it, `convert-md` prints a reminder after each conversion.
 `pipx install convert-md` followed by `convert-md setup` also works.
 
 ### PDF output
@@ -79,7 +80,7 @@ py -m convert_md doctor
 
 | Check | Expected |
 |---|---|
-| `doctor` | `OK` for Python, Pandoc, MarkItDown, PDF and Right-click menus (and Hotkey if installed) |
+| `doctor` | `OK` for Python, Pandoc, MarkItDown, PDF, Right-click menus and Hotkey |
 | Right-click a `.md` file → **Show more options** | **Convert to** submenu |
 | Right-click a `.docx` → **Show more options** | **Convert to Markdown** |
 | Select a file in File Explorer, press **Ctrl+Alt+M** | Convert menu at the mouse pointer |
